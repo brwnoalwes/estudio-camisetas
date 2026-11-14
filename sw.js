@@ -1,5 +1,5 @@
 // Funciona offline: entrega do cache e atualiza em segundo plano.
-const CACHE = 'estudio-camisetas-v1';
+const CACHE = 'estudio-camisetas-v2';
 const FILES = ['./', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest',
   'assets/frente.jpg', 'assets/costas.jpg', 'assets/icon-192.png', 'assets/icon-512.png', 'assets/icon-180.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES))); self.skipWaiting(); });

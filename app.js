@@ -5,11 +5,13 @@ const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 const SIDES = {
-  frente: { src: 'assets/frente.jpg', label: 'Frente', def: { cx: 0.502, cy: 0.43, w: 0.30 } },
-  costas: { src: 'assets/costas.jpg', label: 'Costas', def: { cx: 0.503, cy: 0.46, w: 0.38 } },
+  frente: { src: 'assets/frente.jpg', label: 'Frente', def: { cx: 0.502, cy: 0.43, w: 0.30 }, fit: { cx: 752.5, cy: 989.5, k: 1 } },
+  costas: { src: 'assets/costas.jpg', label: 'Costas', def: { cx: 0.503, cy: 0.46, w: 0.38 }, fit: { cx: 755, cy: 1007.5, k: 1364 / 1245 } },
 };
-// Área ocupada pela camiseta nas fotos (união frente/costas), em fração da imagem.
-const BBOX = { x0: 0.049, x1: 0.958, y0: 0.168, y1: 0.84 };
+// fit: centro da camiseta em cada foto (px) e o quanto ela aparece maior que na foto da frente.
+// As fotos têm zooms diferentes; o enquadramento compensa para as duas ficarem do mesmo tamanho.
+// Tamanho da camiseta na foto de referência (frente), em px.
+const SHIRT = { w: 1245, h: 1226 };
 
 const FORMATS = [
   { id: 'feed', label: 'Feed 4:5', w: 1080, h: 1350 },
@@ -251,13 +253,19 @@ async function loadSide(id) {
 
 /* --------------------------------------------------------------- render */
 
-function viewFor(fmt) {
-  if (fmt.id === 'orig') return [0, 0, 1, 1];
-  const W = 1500, H = 2000, A = fmt.w / fmt.h, pad = 1.16;
-  const bw = (BBOX.x1 - BBOX.x0) * W * pad, bh = (BBOX.y1 - BBOX.y0) * H * pad;
-  let vw = bw, vh = bw / A; if (vh < bh) { vh = bh; vw = bh * A; }
-  const cx = (BBOX.x0 + BBOX.x1) / 2 * W, cy = (BBOX.y0 + BBOX.y1) / 2 * H;
-  return [(cx - vw / 2) / W, (cy - vh / 2) / H, vw / W, vh / H];
+function viewFor(fmt, sideId = state.side) {
+  const W = 1500, H = 2000, fit = SIDES[sideId].fit, ref = SIDES.frente.fit;
+  // Enquadramento em px da foto de referência, relativo ao centro da camiseta.
+  let x0, y0, vw, vh;
+  if (fmt.id === 'orig') { x0 = -ref.cx; y0 = -ref.cy; vw = W; vh = H; }
+  else {
+    const A = fmt.w / fmt.h, pad = 1.16;
+    vw = SHIRT.w * pad; vh = vw / A;
+    if (vh < SHIRT.h * pad) { vh = SHIRT.h * pad; vw = vh * A; }
+    x0 = -vw / 2; y0 = -vh / 2;
+  }
+  const k = fit.k;
+  return [(fit.cx + x0 * k) / W, (fit.cy + y0 * k) / H, vw * k / W, vh * k / H];
 }
 
 const hexToRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
@@ -271,7 +279,7 @@ function draw(sideId = state.side) {
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, t.photo);
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, t.map);
   gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, t.disp);
-  gl.uniform4fv(U.uView, viewFor(state.format));
+  gl.uniform4fv(U.uView, viewFor(state.format, sideId));
   gl.uniform2f(U.uDispTexel, 1 / t.dw, 1 / t.dh);
   gl.uniform3fv(U.uBg, t.bg);
   if (state.color) {
@@ -461,7 +469,7 @@ function syncUI() {
   if (has) {
     $('rngSize').value = s.w * 100;
     // Largura real aproximada: o corpo da camiseta (~57% da foto) mede ~58 cm num oversized.
-    $('outSize').textContent = `≈ ${Math.round(s.w / 0.57 * 58)} cm de largura`;
+    $('outSize').textContent = `≈ ${Math.round(s.w / (0.57 * SIDES[state.side].fit.k) * 58)} cm de largura`;
   } else $('outSize').textContent = '–';
   $('outTex').textContent = Math.round(state.texture * 100) + '%';
   $('outDisp').textContent = Math.round(state.disp * 100) + '%';
