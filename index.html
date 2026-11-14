@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Estúdio de Camisetas</title>
+<meta name="theme-color" content="#111214">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Camisetas">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <main class="stage-wrap" id="stageWrap">
+    <div class="stage" id="stage">
+      <canvas id="gl"></canvas>
+      <div class="guide" id="guide" hidden></div>
+      <div class="sel" id="sel" hidden>
+        <i class="h tl" data-h="tl"></i><i class="h tr" data-h="tr"></i>
+        <i class="h bl" data-h="bl"></i><i class="h br" data-h="br"></i>
+      </div>
+      <div class="drop-hint" id="dropHint">
+        <button class="btn primary" data-act="import">Importar arte</button>
+        <span>PNG sem fundo · ou arraste o arquivo para cá</span>
+      </div>
+    </div>
+    <div class="loading" id="loading">Preparando as camisetas…</div>
+  </main>
+
+  <aside class="panel">
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-side="frente" role="tab">Frente<small id="tagFrente">sem arte</small></button>
+      <button class="tab" data-side="costas" role="tab">Costas<small id="tagCostas">sem arte</small></button>
+    </div>
+
+    <section>
+      <h2>Estampa</h2>
+      <div class="row">
+        <button class="btn primary grow" data-act="import" id="btnImport">Importar arte</button>
+        <button class="btn" id="btnRemove" disabled>Remover</button>
+      </div>
+      <label class="slider">
+        <span>Tamanho <output id="outSize">–</output></span>
+        <input type="range" id="rngSize" min="5" max="90" step="0.1" value="30" disabled>
+      </label>
+      <div class="row">
+        <button class="btn grow" id="btnCenter" disabled>Centralizar</button>
+        <button class="btn grow" id="btnReset" disabled>Posição padrão</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Cor da camiseta</h2>
+      <div class="swatches" id="swatches"></div>
+    </section>
+
+    <section>
+      <h2>Realismo</h2>
+      <label class="slider"><span>Textura do tecido <output id="outTex"></output></span>
+        <input type="range" id="rngTex" min="0" max="100" value="45"></label>
+      <label class="slider"><span>Dobras <output id="outDisp"></output></span>
+        <input type="range" id="rngDisp" min="0" max="100" value="40"></label>
+      <label class="slider"><span>Opacidade da tinta <output id="outOp"></output></span>
+        <input type="range" id="rngOp" min="50" max="100" value="97"></label>
+    </section>
+
+    <section>
+      <h2>Exportar</h2>
+      <div class="seg" id="segFmt"></div>
+      <div class="seg" id="segQ">
+        <button data-q="1" class="on">Padrão</button>
+        <button data-q="2">Alta (2×)</button>
+      </div>
+      <p class="hint" id="outDims"></p>
+      <div class="row">
+        <button class="btn primary grow" id="btnExport">Baixar PNG</button>
+        <button class="btn grow" id="btnExportBoth">Frente + costas</button>
+      </div>
+      <button class="btn wide" id="btnShare" hidden>Compartilhar / salvar na galeria</button>
+    </section>
+  </aside>
+</div>
+<input type="file" id="file" accept="image/png,image/webp,image/svg+xml,image/*" hidden>
+<div class="toast" id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
